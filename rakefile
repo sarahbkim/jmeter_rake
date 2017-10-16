@@ -3,7 +3,6 @@
 require 'rake'
 require 'json'
 require 'optparse'
-
 URLS = []
 JMETER_FILE = 'jmeter.rb'
 
@@ -61,6 +60,7 @@ task :generate_jmeter, [:number, :host] do |t, args|
     file.puts 'test do'
       file.puts "threads count: #{args[:number]}  do"
       file.puts 'think_time 5000, 2000'
+      file.puts 'cookies clear_each_iteration: true'
 
       # TODO: move these out, and make log-in a configurable item
       login_params = {
