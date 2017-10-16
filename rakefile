@@ -39,11 +39,30 @@ task :generate_jmeter do
       file.puts 'threads count: 10 do'
       file.puts 'think_time 5000, 2000'
 
+      login_params = {
+        user_session: {
+          email: "sarahkim@factual.com",
+          password: "temp123"
+        }
+      }
+
+      file.puts <<-eos
+        header({
+          name: 'Content-Type', value: 'application/json; text/html; charset=utf-8'
+        })
+
+        post name: 'Log in',
+          url: '#{DOMAIN}/login',
+          raw_body: #{login_params}.to_json
+      eos
+
       URLS.each do |url|
-        file.puts "visit name: '#{url}', url: '#{url}'"
+       file.puts "visit name: '#{url}', url: '#{url}'"
       end
 
       file.puts 'end'
-    file.puts 'end.run'
+      file.puts 'view_results_tree'
+      file.puts 'summary_report'
+    file.puts 'end.run(gui: true)'
   end
 end
