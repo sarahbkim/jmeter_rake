@@ -1,0 +1,5 @@
+
+*.jtl
+*.log
+jmeter.rb
+*.jmx

@@ -1,0 +1,49 @@
+#!/usr/bin/env ruby
+
+require 'rake'
+require 'json'
+
+URLS = []
+LOG_FILE = ARGV[1]
+DOMAIN = ARGV[2]
+JMETER_FILE = 'jmeter.rb'
+
+task :run do
+  puts "Starting task with arguments: #{ARGV}"
+  Rake::Task['lograge'].invoke(LOG_FILE, DOMAIN)
+  Rake::Task['generate_jmeter'].invoke
+
+  puts 'Running jmeter.rb file...'
+  Kernel.exec "ruby #{JMETER_FILE}"
+end
+
+task :lograge do
+  puts "Parsing lograge to generate url..#{LOG_FILE} #{DOMAIN}"
+  unless FileTest.file?("./#{LOG_FILE}")
+    abort("rake aborted: '#{LOG_FILE}' file not found.")
+  end
+  DOMAIN ||= "http://localhost:10003"
+
+  File.readlines(LOG_FILE).each do |line|
+    path = (JSON.parse line)['path']
+    URLS << "#{DOMAIN}#{path}"
+  end
+  puts "Generated urls: #{URLS.length}"
+end
+
+task :generate_jmeter do
+  File.open(JMETER_FILE, 'w') do |file|
+    file.puts "#!/usr/bin/env ruby"
+    file.puts "require 'ruby-jmeter'"
+    file.puts 'test do'
+      file.puts 'threads count: 10 do'
+      file.puts 'think_time 5000, 2000'
+
+      URLS.each do |url|
+        file.puts "visit name: '#{url}', url: '#{url}'"
+      end
+
+      file.puts 'end'
+    file.puts 'end.run'
+  end
+end
